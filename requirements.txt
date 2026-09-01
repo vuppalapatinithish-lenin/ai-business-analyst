@@ -3,4 +3,5 @@ google-genai
 chromadb
 scikit-learn
 python-dotenv
-mcp<2gunicorn
+mcp<2
+gunicorn
