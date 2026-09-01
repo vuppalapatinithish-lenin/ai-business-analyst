@@ -6,7 +6,8 @@ import sys
 from dotenv import dotenv_values
 from google import genai
 
-import chromadb
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -16,14 +17,9 @@ from mcp.client.stdio import stdio_client
 # LOAD API KEY
 # ============================================================
 
-# Local PC:
-#   Reads GEMINI_API_KEY from .env
-#
-# Render:
-#   Reads GEMINI_API_KEY from Render Environment Variables
-
 config = dotenv_values(".env")
 
+# Local .env OR Render Environment Variables
 api_key = os.getenv("GEMINI_API_KEY") or config.get("GEMINI_API_KEY")
 
 if not api_key:
@@ -41,16 +37,58 @@ gemini = genai.Client(
 
 
 # ============================================================
-# RAG DATABASE
+# RAG DATABASE - LIGHTWEIGHT TF-IDF
 # ============================================================
 
-chroma_client = chromadb.PersistentClient(
-    path="vector_db"
+DOCUMENT_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "documents",
+    "company_handbook.txt"
 )
 
-collection = chroma_client.get_collection(
-    name="company_documents"
-)
+
+def load_company_documents():
+
+    if not os.path.exists(DOCUMENT_PATH):
+        return []
+
+    with open(
+        DOCUMENT_PATH,
+        "r",
+        encoding="utf-8"
+    ) as file:
+
+        text = file.read()
+
+    # Split handbook into small chunks
+    chunks = [
+        chunk.strip()
+        for chunk in text.split("\n\n")
+        if chunk.strip()
+    ]
+
+    return chunks
+
+
+document_chunks = load_company_documents()
+
+
+# Create lightweight TF-IDF index
+if document_chunks:
+
+    vectorizer = TfidfVectorizer(
+        lowercase=True,
+        stop_words="english"
+    )
+
+    document_vectors = vectorizer.fit_transform(
+        document_chunks
+    )
+
+else:
+
+    vectorizer = None
+    document_vectors = None
 
 
 # ============================================================
@@ -59,23 +97,35 @@ collection = chroma_client.get_collection(
 
 def search_company_documents(question):
 
-    results = collection.query(
-        query_texts=[question],
-        n_results=3
+    if not document_chunks or vectorizer is None:
+        return "No company documents found."
+
+    question_vector = vectorizer.transform(
+        [question]
     )
 
-    documents = results.get("documents", [])
+    similarities = cosine_similarity(
+        question_vector,
+        document_vectors
+    )[0]
 
-    if not documents:
+    # Get top 3 relevant chunks
+    top_indices = similarities.argsort()[-3:][::-1]
+
+    results = []
+
+    for index in top_indices:
+
+        if similarities[index] > 0:
+
+            results.append(
+                document_chunks[index]
+            )
+
+    if not results:
         return "No relevant company documents found."
 
-    flattened = []
-
-    for group in documents:
-        for document in group:
-            flattened.append(document)
-
-    return "\n\n".join(flattened)
+    return "\n\n".join(results)
 
 
 # ============================================================
@@ -199,7 +249,7 @@ async def main():
 
             await session.initialize()
 
-            print("\n🟢 Connected to MCP Server")
+            print("\nConnected to MCP Server")
 
             # ------------------------------------------------
             # GET MCP TOOLS
@@ -214,11 +264,11 @@ async def main():
             for tool in mcp_tools:
 
                 print(
-                    f"  🔧 {tool.name}"
+                    f"  {tool.name}"
                 )
 
             print(
-                "  📚 search_company_documents"
+                "  search_company_documents"
             )
 
             # ------------------------------------------------
@@ -242,7 +292,7 @@ async def main():
             )
 
             print(
-                "\n🤖 Gemini is thinking..."
+                "\nGemini is thinking..."
             )
 
             # ------------------------------------------------
@@ -271,12 +321,12 @@ async def main():
                     function_calls.append(step)
 
                     print(
-                        f"\n🔧 Gemini selected tool: "
+                        f"\nGemini selected tool: "
                         f"{step.name}"
                     )
 
                     print(
-                        f"📦 Arguments: "
+                        f"Arguments: "
                         f"{step.arguments}"
                     )
 
@@ -319,7 +369,7 @@ async def main():
                 if call.name == "search_company_documents":
 
                     print(
-                        "\n📚 Searching company documents..."
+                        "\nSearching company documents..."
                     )
 
                     arguments = call.arguments or {}
@@ -334,7 +384,7 @@ async def main():
                     )
 
                     print(
-                        f"\n📄 RAG Result:\n{result_text}"
+                        f"\nRAG Result:\n{result_text}"
                     )
 
                 # ============================================
@@ -344,7 +394,7 @@ async def main():
                 else:
 
                     print(
-                        f"\n⚙️ Executing MCP tool: "
+                        f"\nExecuting MCP tool: "
                         f"{call.name}"
                     )
 
@@ -360,7 +410,7 @@ async def main():
                     )
 
                     print(
-                        f"\n📊 MCP Result:\n{result_text}"
+                        f"\nMCP Result:\n{result_text}"
                     )
 
                 # ============================================
@@ -388,7 +438,7 @@ async def main():
             # ------------------------------------------------
 
             print(
-                "\n🧠 Sending retrieved data to Gemini..."
+                "\nSending retrieved data to Gemini..."
             )
 
             final_interaction = (
