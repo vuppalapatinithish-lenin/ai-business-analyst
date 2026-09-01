@@ -1,0 +1,6 @@
+flask
+google-genai
+chromadb
+scikit-learn
+python-dotenv
+mcp<2
