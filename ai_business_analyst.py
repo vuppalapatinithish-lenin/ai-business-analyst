@@ -7,7 +7,6 @@ from dotenv import dotenv_values
 from google import genai
 
 import chromadb
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -17,9 +16,15 @@ from mcp.client.stdio import stdio_client
 # LOAD API KEY
 # ============================================================
 
+# Local PC:
+#   Reads GEMINI_API_KEY from .env
+#
+# Render:
+#   Reads GEMINI_API_KEY from Render Environment Variables
+
 config = dotenv_values(".env")
 
-api_key = config.get("GEMINI_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY") or config.get("GEMINI_API_KEY")
 
 if not api_key:
     print("GEMINI_API_KEY not found!")
@@ -54,66 +59,20 @@ collection = chroma_client.get_collection(
 
 def search_company_documents(question):
 
-    # --------------------------------------------------------
-    # Get documents from Chroma
-    # --------------------------------------------------------
-
-    data = collection.get(
-        include=["documents"]
-    )
-
-    documents = data.get("documents", [])
-
-    if not documents:
-        return "No company documents found."
-
-    # --------------------------------------------------------
-    # Create the SAME TF-IDF model used for the database
-    # --------------------------------------------------------
-
-    vectorizer = TfidfVectorizer()
-
-    document_embeddings = vectorizer.fit_transform(
-        documents
-    ).toarray()
-
-    # --------------------------------------------------------
-    # Convert user question into TF-IDF vector
-    # --------------------------------------------------------
-
-    question_embedding = vectorizer.transform(
-        [question]
-    ).toarray()[0]
-
-    # --------------------------------------------------------
-    # Search Chroma using our own embedding
-    # --------------------------------------------------------
-
     results = collection.query(
-        query_embeddings=[
-            question_embedding.tolist()
-        ],
+        query_texts=[question],
         n_results=3
     )
 
-    retrieved_documents = results.get(
-        "documents",
-        []
-    )
+    documents = results.get("documents", [])
 
-    if not retrieved_documents:
+    if not documents:
         return "No relevant company documents found."
-
-    # --------------------------------------------------------
-    # Flatten results
-    # --------------------------------------------------------
 
     flattened = []
 
-    for group in retrieved_documents:
-
+    for group in documents:
         for document in group:
-
             flattened.append(document)
 
     return "\n\n".join(flattened)
