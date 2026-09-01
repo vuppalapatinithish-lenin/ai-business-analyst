@@ -22,6 +22,9 @@ config = dotenv_values(".env")
 # Local .env OR Render Environment Variables
 api_key = os.getenv("GEMINI_API_KEY") or config.get("GEMINI_API_KEY")
 
+# SAFE DIAGNOSTIC - never prints the actual API key
+print("GEMINI_API_KEY present:", bool(api_key))
+
 if not api_key:
     print("GEMINI_API_KEY not found!")
     sys.exit(1)
@@ -73,7 +76,10 @@ def load_company_documents():
 document_chunks = load_company_documents()
 
 
-# Create lightweight TF-IDF index
+# ============================================================
+# CREATE LIGHTWEIGHT TF-IDF INDEX
+# ============================================================
+
 if document_chunks:
 
     vectorizer = TfidfVectorizer(
