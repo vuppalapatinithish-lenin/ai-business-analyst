@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Business Analyst</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                #0f172a;
+
+            color: #f8fafc;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1050px;
+            margin: auto;
+            padding: 60px 0;
+        }
+
+        /* HEADER */
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin: 0 0 12px;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 17px;
+            margin: 0;
+        }
+
+        .status {
+            display: inline-block;
+
+            margin-top: 18px;
+
+            padding: 8px 16px;
+
+            border-radius: 30px;
+
+            background: #064e3b;
+
+            color: #6ee7b7;
+
+            font-size: 13px;
+        }
+
+        /* MAIN CARD */
+
+        .card {
+            background: #1e293b;
+
+            border: 1px solid #334155;
+
+            border-radius: 18px;
+
+            padding: 30px;
+
+            box-shadow:
+                0 20px 60px
+                rgba(0, 0, 0, 0.35);
+        }
+
+        .label {
+            display: block;
+
+            margin-bottom: 10px;
+
+            font-size: 15px;
+
+            color: #cbd5e1;
+        }
+
+        textarea {
+
+            width: 100%;
+
+            min-height: 140px;
+
+            resize: vertical;
+
+            padding: 18px;
+
+            border-radius: 12px;
+
+            border: 1px solid #475569;
+
+            background: #0f172a;
+
+            color: white;
+
+            font-size: 16px;
+
+            line-height: 1.5;
+
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #60a5fa;
+        }
+
+        button {
+
+            width: 100%;
+
+            margin-top: 18px;
+
+            padding: 15px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #2563eb;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        /* EXAMPLES */
+
+        .examples {
+            margin-top: 22px;
+        }
+
+        .examples-title {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .example {
+
+            width: auto;
+
+            margin: 0;
+
+            padding: 9px 13px;
+
+            background: #334155;
+
+            border: 1px solid #475569;
+
+            font-size: 13px;
+
+            font-weight: normal;
+        }
+
+        .example:hover {
+            background: #475569;
+        }
+
+        /* LOADING */
+
+        .loading {
+
+            display: none;
+
+            text-align: center;
+
+            padding: 25px;
+
+            color: #93c5fd;
+
+            font-size: 15px;
+        }
+
+        /* ANSWER */
+
+        .answer {
+
+            display: none;
+
+            margin-top: 25px;
+
+            padding: 25px;
+
+            border-radius: 14px;
+
+            background: #0f172a;
+
+            border: 1px solid #334155;
+        }
+
+        .answer-title {
+
+            color: #60a5fa;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin-bottom: 15px;
+        }
+
+        #answerText {
+
+            white-space: pre-wrap;
+
+            line-height: 1.7;
+
+            color: #e2e8f0;
+
+            font-size: 16px;
+        }
+
+        /* FOOTER */
+
+        .footer {
+
+            text-align: center;
+
+            margin-top: 30px;
+
+            color: #64748b;
+
+            font-size: 13px;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 600px) {
+
+            .container {
+                width: 94%;
+                padding-top: 35px;
+            }
+
+            .header h1 {
+                font-size: 30px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <h1>🤖 AI Business Analyst</h1>
+
+        <p>
+            Ask questions about business data
+            and company knowledge.
+        </p>
+
+        <div class="status">
+            🟢 Gemini + MCP + RAG
+        </div>
+
+    </div>
+
+
+    <!-- MAIN CARD -->
+
+    <div class="card">
+
+
+        <label class="label">
+            Ask your business question
+        </label>
+
+
+        <textarea
+            id="question"
+            placeholder="Example: Which product generated the highest revenue?"
+        ></textarea>
+
+
+        <button
+            id="askButton"
+            onclick="askQuestion()"
+        >
+            Ask Business Analyst
+        </button>
+
+
+        <!-- EXAMPLES -->
+
+        <div class="examples">
+
+            <div class="examples-title">
+                Try an example
+            </div>
+
+
+            <div class="example-buttons">
+
+                <button
+                    class="example"
+                    onclick="useExample('How many annual leave days do employees get?')"
+                >
+                    Annual Leave
+                </button>
+
+
+                <button
+                    class="example"
+                    onclick="useExample('Which product generated the highest revenue?')"
+                >
+                    Top Product
+                </button>
+
+
+                <button
+                    class="example"
+                    onclick="useExample('Which region generated the highest revenue?')"
+                >
+                    Top Region
+                </button>
+
+
+                <button
+                    class="example"
+                    onclick="useExample('What is the company work from home policy?')"
+                >
+                    Work From Home
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- LOADING -->
+
+        <div
+            id="loading"
+            class="loading"
+        >
+            🤖 Analyzing your question...
+        </div>
+
+
+        <!-- ANSWER -->
+
+        <div
+            id="answerBox"
+            class="answer"
+        >
+
+            <div class="answer-title">
+                AI Answer
+            </div>
+
+            <div id="answerText"></div>
+
+        </div>
+
+
+    </div>
+
+
+    <div class="footer">
+
+        AI Business Analyst • Gemini • MCP • RAG • ChromaDB • SQLite
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+function useExample(question) {
+
+    document
+        .getElementById("question")
+        .value = question;
+
+}
+
+
+async function askQuestion() {
+
+
+    const question =
+        document
+            .getElementById("question")
+            .value
+            .trim();
+
+
+    const button =
+        document
+            .getElementById("askButton");
+
+
+    const loading =
+        document
+            .getElementById("loading");
+
+
+    const answerBox =
+        document
+            .getElementById("answerBox");
+
+
+    const answerText =
+        document
+            .getElementById("answerText");
+
+
+    if (!question) {
+
+        alert(
+            "Please enter a question."
+        );
+
+        return;
+
+    }
+
+
+    button.disabled = true;
+
+    loading.style.display = "block";
+
+    answerBox.style.display = "none";
+
+
+    try {
+
+
+        const response =
+            await fetch(
+                "/ask",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            question:
+                                question
+                        })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.success) {
+
+            answerText.textContent =
+                data.answer;
+
+        } else {
+
+            answerText.textContent =
+                "Error:\n" +
+                data.answer;
+
+        }
+
+
+        answerBox.style.display =
+            "block";
+
+
+    }
+
+    catch (error) {
+
+        answerText.textContent =
+            "Connection error:\n" +
+            error.message;
+
+        answerBox.style.display =
+            "block";
+
+    }
+
+
+    button.disabled = false;
+
+    loading.style.display =
+        "none";
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
